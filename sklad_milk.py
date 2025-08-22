@@ -1,184 +1,361 @@
-# 🏨 sklad_milk.py — финальная версия
-# Интерфейс: только кнопки "+/-" по 0.5, без ручного ввода
-# Возможность "отменить" последнюю операцию (факт/заказ) до формирования отчёта
-# Сохранение в TXT, Google Sheets, Google Drive
+# -*- coding: utf-8 -*-
+# 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (упрощённая офлайн-версия)
+# Ввод только кнопками ±0.5, временное хранилище, отмена последней записи,
+# сводные таблицы + кнопки скачивания TXT/CSV. Без Google Drive/Sheets.
 
-import streamlit as st
+import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import os
-import gspread
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from collections import defaultdict
 
-# === Константы ===
+import streamlit as st
+import pandas as pd
+
+# ====== БАЗОВЫЕ НАСТРОЙКИ ======
 TZ = ZoneInfo("Asia/Jerusalem")
-FACTS_HEADERS = ["timestamp_iso", "date_il", "product_he", "size", "quantity_units"]
-ORDERS_HEADERS = FACTS_HEADERS
+PAGE_TITLE = "🥛 Молочный склад — Golan Hotel"
+st.set_page_config(page_title=PAGE_TITLE, layout="wide")
+
+# ====== СТИЛЬ (мобила/крупные элементы/няшный вайб) ======
+st.markdown("""
+<style>
+:root { --g-size: 1.05rem; --g-h: 1.15rem; }
+html, body, [class*="css"]  { font-size: 18px !important; }
+h1, h2, h3 { letter-spacing: .3px; }
+.block-container { padding-top: 1.2rem; padding-bottom: 3rem; }
+button, .stButton>button {
+  font-size: 18px !important; padding: .55rem .9rem !important;
+  border-radius: 14px !important;
+}
+.g-badge {
+  display:inline-block; padding:.2rem .6rem; border-radius:12px;
+  background:#f1f5f9; color:#0f172a; font-weight:600; margin-left:.4rem;
+}
+.g-chip {
+  padding:.25rem .6rem; border-radius:999px; background:#eef2ff; color:#4338ca;
+  font-size: 0.9rem; font-weight: 700; margin-left:.5rem;
+}
+.g-card {
+  border:1px solid #e2e8f0; border-radius:16px; padding:12px 14px; margin-bottom:10px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(2,6,23,0.02), 0 8px 24px rgba(2,6,23,0.05);
+}
+.qty {
+  font-size: 22px; font-weight: 800; padding: .1rem .6rem; border-radius: 12px;
+  background: #ecfeff; color:#0e7490; display:inline-block; min-width:72px; text-align:center;
+}
+.kitty { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+</style>
+""", unsafe_allow_html=True)
+
+# ====== ASCII-кошки для настроения ======
+st.markdown(
+f"""
+# {PAGE_TITLE}  
+<span class="kitty">
+/\\_/\\  ☆  привет!<br>
+( o.o )  считаем сырки, йогурты и молочко по 0.5<br>
+> ^ <
+</span>
+""",
+unsafe_allow_html=True
+)
+
+st.caption("Совет: кликай только «➕/➖ 0.5». Чтобы записать — жми «💾 Сохранить факт» или «✅ Подтвердить заказ». Отменить можно только **последнюю** запись по товару до формирования таблиц.")
+
+# ====== СПИСОК ПРОДУКТОВ (иврит, строго заданный порядок) ======
 PRODUCTS = [
-"גבינה גאודה",
-"גבינה צהובה",
-"גבינה מוצרלה",
-"גבינה מוצרלה ארוך",
-"פרומעז",
-"גבינת שמנת",
-"גבינת שום",
-"גבינת זיתים",
-"גבינה לבנה",
-"קוטג'י",
-"רוקפור",
-"קממבר",
-"ברי",
-"מוצרלה טחון",
-"מעדנים תות",
-"מעדנים אֲפַרסֶק",
-"מעדנים יוגורט",
-"מעדנים פודינג",
-"בולגרית 5%",
-"בולגרית 24%",
-"מוצרלה בייבי כדורים",
-"מוצרלה צפתית",
-"יוגורט נעמה",
-"גבינה מגורדת",
-"גבינה מוצרלה מגורדת",
-"שמנת חממה",
-"שמנת מפוסטרת",
-"חלב",
-"ביצים קרטון",
-"רביולי גבינה",
-"רביולי בטטה",
-"מוצרלה מטוגנת",
-"בלינצ'ס נוגה",
-"בלינצ'ס שוקולד",
-"בלינצ'ס תפוח"
-]  # ← вставь свои
+    "גבינה גאודה",
+    "גבינה צהובה",
+    "גבינה מוצרלה",
+    "גבינה מוצרלה ארוך",
+    "פרומעז",
+    "גבינת שמנת",
+    "גבינת שום",
+    "גבינת זיתים",
+    "גבינה לבנה",
+    "קוטג׳",
+    "רוקפור",
+    "קממבר",
+    "ברי",
+    "מוצרלה טחון",
+    "מעדנים תות",
+    "מעדנים אֲפַרסֵק",
+    "מעדנים יוגורט",
+    "מעדנים פודינג",
+    "בולגרית  5%",
+    "בולגרית  24%",
+    "מוצרלה בייבי",
+    "כדורים מוצרלה",
+    "צפתית",
+    "יוגורט",
+    "נעמה",
+    "גבינה מגורדת",
+    "גבינה מוצרלה מגורדת",
+    "שמנת",
+    "חממה",
+    "שמנת מפוסטרת",
+    "חלב",
+    "ביצים קרטון",
+    "רביולי גבינה",
+    "רביולי בטטה",
+    "מוצרלה מטוגנת",
+    "בלינצ׳ס נוגה",
+    "בלינצ׳ס שוקולד",
+    "בלינצ׳ס תפוח",
+]
 
-# === Streamlit config ===
-st.set_page_config(page_title="🥛 Молочный склад", layout="wide")
-st.title("🥛 Молочный склад — Отель Голан")
+# Небольшая таблица эмодзи под настроение
+EMOJI = {
+    "חלב": "🥛", "יוגורט": "🥛", "קוטג׳": "🥣", "גבינה": "🧀", "ביצים": "🥚",
+    "רביולי": "🥟", "בלינצ׳ס": "🥞", "מעדנים": "🍮", "אֲפַרסֵק": "🍑", "תות": "🍓",
+}
+def emoji_for(name: str) -> str:
+    for k, v in EMOJI.items():
+        if k in name:
+            return v
+    return "🧀"
 
-# === Session state ===
-def init_state():
-    if "facts" not in st.session_state:
-        st.session_state.facts = []
-    if "orders" not in st.session_state:
-        st.session_state.orders = []
-    if "counters" not in st.session_state:
+# ====== SESSION STATE ======
+def _init_state():
+    if "temp_facts" not in st.session_state:   # список записей фактов (временное)
+        st.session_state.temp_facts = []       # элементы: dict(product, size, qty, ts)
+    if "temp_orders" not in st.session_state:  # список записей заказов (временное)
+        st.session_state.temp_orders = []
+    if "counters" not in st.session_state:     # счётчики по товарам: {'product_key': {'fact':0.0,'order':0.0,'size':'big'}}
         st.session_state.counters = {}
-init_state()
+    if "finalized_facts" not in st.session_state:
+        st.session_state.finalized_facts = False
+    if "finalized_orders" not in st.session_state:
+        st.session_state.finalized_orders = False
 
-# === Время ===
+_init_state()
+
+def pkey(name: str) -> str:
+    return name.replace(" ", "_").replace("'", "_").replace("״", "_").replace("״", "_")
+
 def now():
     dt = datetime.now(TZ)
-    return dt.isoformat(), dt.strftime("%Y-%m-%d %H:%M")
+    return dt, dt.strftime("%Y-%m-%d %H:%M")
 
-# === Google Auth ===
-creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=[
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-])
+def add05(x: float) -> float:
+    return round((x + 0.5) * 2) / 2.0
 
-drive = build("drive", "v3", credentials=creds)
+def sub05(x: float) -> float:
+    y = round((x - 0.5) * 2) / 2.0
+    return max(0.0, y)
 
-# === Google Drive helpers ===
-def upload_to_drive(folder_id, filepath):
-    file_metadata = {"name": os.path.basename(filepath), "parents": [folder_id]}
-    media = MediaFileUpload(filepath, mimetype="text/plain")
-    drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
+# ====== Сайдбар: действия с сессией ======
+with st.sidebar:
+    st.header("⚙️ Управление")
+    if st.button("🧽 Новая сессия (очистить всё)", type="primary"):
+        for k in ("temp_facts", "temp_orders", "counters", "finalized_facts", "finalized_orders"):
+            if k in st.session_state:
+                del st.session_state[k]
+        _init_state()
+        st.experimental_rerun()
 
-# === Sheets helpers ===
-def save_to_sheet(sheet_name, rows):
-    try:
-        ws = sheet.worksheet(sheet_name)
-    except:
-        ws = sheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
-        ws.append_row(FACTS_HEADERS)
-    ws.append_rows(rows)
+    show_debug = st.checkbox("Показать отладку", value=False)
 
-# === UI: блок продукта ===
-def product_block(name):
-    st.markdown(f"### 🧀 {name}")
-    key_base = name.replace(" ", "_")
-    size = st.radio("Размер:", ["big", "small"], horizontal=True, key=f"{key_base}_size")
+# ====== КОМПОНЕНТ ТОВАРА ======
+def product_block(name: str):
+    key = pkey(name)
+    if key not in st.session_state.counters:
+        st.session_state.counters[key] = {"fact": 0.0, "order": 0.0, "size": "big"}
 
-    if key_base not in st.session_state.counters:
-        st.session_state.counters[key_base] = {"fact": 0.0, "order": 0.0}
+    em = emoji_for(name)
+    st.markdown(f'<div class="g-card"><h3>{em} {name}<span class="g-badge">milk</span></h3>', unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+    # Выбор размера
+    size = st.segmented_control(
+        "Размер единицы",
+        options=[("Большой", "big"), ("Маленький", "small")],
+        format_func=lambda x: x[0],
+        key=f"{key}_size_seg",
+        default=("Большой", "big"),
+    )[1]
+    st.session_state.counters[key]["size"] = size
 
-    with col1:
-        st.markdown("**Фактический остаток:**")
-        if st.button("➖", key=f"{key_base}_fact_minus"):
-            st.session_state.counters[key_base]["fact"] = max(0.0, st.session_state.counters[key_base]["fact"] - 0.5)
-        st.write(f"**{st.session_state.counters[key_base]['fact']} шт.**")
-        if st.button("➕", key=f"{key_base}_fact_plus"):
-            st.session_state.counters[key_base]["fact"] += 0.5
-        if st.button("💾 Сохранить факт", key=f"{key_base}_fact_save"):
-            ts_iso, date = now()
-            qty = st.session_state.counters[key_base]["fact"]
-            st.session_state.facts.append([ts_iso, date, name, size, qty])
-            st.success(f"Сохранено: {qty} шт. {name} ({size})")
-        if st.button("↩️ Отменить факт", key=f"{key_base}_fact_undo"):
-            for i in range(len(st.session_state.facts)-1, -1, -1):
-                if st.session_state.facts[i][2] == name:
-                    st.session_state.facts.pop(i)
-                    st.warning(f"Удалена последняя запись по {name}")
+    # Две колонки: ФАКТ / ЗАКАЗ
+    c1, c2 = st.columns(2)
+
+    # ===== ФАКТИЧЕСКИЙ ОСТАТОК =====
+    with c1:
+        st.markdown("**Фактический остаток**  <span class='g-chip'>±0.5</span>", unsafe_allow_html=True)
+        bb1, bb2, bb3, bb4 = st.columns([1,1,2,2])
+        if bb1.button("➖ 0.5", key=f"{key}_fact_minus", disabled=st.session_state.finalized_facts):
+            st.session_state.counters[key]["fact"] = sub05(st.session_state.counters[key]["fact"])
+        if bb2.button("➕ 0.5", key=f"{key}_fact_plus", disabled=st.session_state.finalized_facts):
+            st.session_state.counters[key]["fact"] = add05(st.session_state.counters[key]["fact"])
+        bb3.markdown(f"<div class='qty'>{st.session_state.counters[key]['fact']:.1f}</div>", unsafe_allow_html=True)
+        if bb4.button("🔄 Сброс", key=f"{key}_fact_reset", disabled=st.session_state.finalized_facts):
+            st.session_state.counters[key]["fact"] = 0.0
+
+        a1, a2 = st.columns([2,2])
+        if a1.button("💾 Сохранить факт", key=f"{key}_fact_save", disabled=st.session_state.finalized_facts):
+            qty = float(st.session_state.counters[key]["fact"])
+            if qty <= 0:
+                st.warning("Введите количество (хотя бы 0.5) перед сохранением.")
+            else:
+                ts_dt, ts_str = now()
+                st.session_state.temp_facts.append({
+                    "timestamp": ts_str,
+                    "product": name,
+                    "size": size,
+                    "qty": qty,
+                })
+                st.success(f"Сохранено: {qty:.1f} шт. — {name} ({size})")
+                # Сбросить счётчик, чтобы дальше считать новую точку на складе
+                st.session_state.counters[key]["fact"] = 0.0
+
+        if a2.button("↩️ Отменить факт", key=f"{key}_fact_undo", disabled=st.session_state.finalized_facts):
+            # удаляем последнюю запись по ЭТОМУ товару (независимо от size)
+            for i in range(len(st.session_state.temp_facts)-1, -1, -1):
+                if st.session_state.temp_facts[i]["product"] == name:
+                    removed = st.session_state.temp_facts.pop(i)
+                    st.warning(f"Удалено: {removed['qty']:.1f} шт. — {name} ({removed['size']})")
                     break
+            else:
+                st.info("Для этого товара нет временных записей.")
 
-    with col2:
-        st.markdown("**Требуется закупить:**")
-        if st.button("➖", key=f"{key_base}_order_minus"):
-            st.session_state.counters[key_base]["order"] = max(0.0, st.session_state.counters[key_base]["order"] - 0.5)
-        st.write(f"**{st.session_state.counters[key_base]['order']} шт.**")
-        if st.button("➕", key=f"{key_base}_order_plus"):
-            st.session_state.counters[key_base]["order"] += 0.5
-        if st.button("✅ Подтвердить заказ", key=f"{key_base}_order_save"):
-            ts_iso, date = now()
-            qty = st.session_state.counters[key_base]["order"]
-            st.session_state.orders.append([ts_iso, date, name, size, qty])
-            st.success(f"Добавлено в заказ: {qty} шт. {name} ({size})")
-        if st.button("↩️ Отменить заказ", key=f"{key_base}_order_undo"):
-            for i in range(len(st.session_state.orders)-1, -1, -1):
-                if st.session_state.orders[i][2] == name:
-                    st.session_state.orders.pop(i)
-                    st.warning(f"Удалена последняя запись заказа по {name}")
+    # ===== ТРЕБУЕТСЯ ЗАКУПИТЬ =====
+    with c2:
+        st.markdown("**Требуется закупить**  <span class='g-chip'>±0.5</span>", unsafe_allow_html=True)
+        cc1, cc2, cc3, cc4 = st.columns([1,1,2,2])
+        if cc1.button("➖ 0.5", key=f"{key}_order_minus", disabled=st.session_state.finalized_orders):
+            st.session_state.counters[key]["order"] = sub05(st.session_state.counters[key]["order"])
+        if cc2.button("➕ 0.5", key=f"{key}_order_plus", disabled=st.session_state.finalized_orders):
+            st.session_state.counters[key]["order"] = add05(st.session_state.counters[key]["order"])
+        cc3.markdown(f"<div class='qty'>{st.session_state.counters[key]['order']:.1f}</div>", unsafe_allow_html=True)
+        if cc4.button("🔄 Сброс", key=f"{key}_order_reset", disabled=st.session_state.finalized_orders):
+            st.session_state.counters[key]["order"] = 0.0
+
+        b1, b2 = st.columns([2,2])
+        if b1.button("✅ Подтвердить заказ", key=f"{key}_order_save", disabled=st.session_state.finalized_orders):
+            qty = float(st.session_state.counters[key]["order"])
+            if qty <= 0:
+                st.warning("Введите количество (хотя бы 0.5) перед подтверждением заказа.")
+            else:
+                ts_dt, ts_str = now()
+                st.session_state.temp_orders.append({
+                    "timestamp": ts_str,
+                    "product": name,
+                    "size": size,
+                    "qty": qty,
+                })
+                st.success(f"Добавлено в заказ: {qty:.1f} шт. — {name} ({size})")
+                st.session_state.counters[key]["order"] = 0.0
+
+        if b2.button("↩️ Отменить заказ", key=f"{key}_order_undo", disabled=st.session_state.finalized_orders):
+            for i in range(len(st.session_state.temp_orders)-1, -1, -1):
+                if st.session_state.temp_orders[i]["product"] == name:
+                    removed = st.session_state.temp_orders.pop(i)
+                    st.warning(f"Удалено из заказа: {removed['qty']:.1f} шт. — {name} ({removed['size']})")
                     break
+            else:
+                st.info("Для этого товара нет временных записей по заказу.")
+
+    st.markdown("</div>", unsafe_allow_html=True)  # g-card end
+
+
+# ====== РЕНДЕР ВСЕГО СПИСКА ======
+for prod in PRODUCTS:
+    product_block(prod)
+
+st.divider()
+
+# ====== ВСПОМОГАТЕЛЬНЫЕ ======
+def aggregate_rows(rows: list[dict]) -> pd.DataFrame:
+    """Группировка по продукту+размеру с суммой qty."""
+    if not rows:
+        return pd.DataFrame(columns=["Продукт", "Размер", "Количество"])
+    df = pd.DataFrame(rows)
+    g = df.groupby(["product", "size"], as_index=False)["qty"].sum()
+    g = g.rename(columns={"product": "Продукт", "size": "Размер", "qty": "Количество"})
+    g["Количество"] = g["Количество"].map(lambda x: f"{x:.1f}")
+    return g
+
+def df_to_txt_lines(df: pd.DataFrame, title: str) -> str:
+    now_str = datetime.now(TZ).strftime("%Y-%m-%d %H:%M")
+    lines = [f"{title} — {now_str}", "-"*28]
+    for _, r in df.iterrows():
+        lines.append(f"{r['Продукт']} ({r['Размер']}): {r['Количество']} шт.")
+    return "\n".join(lines) + "\n"
+
+def make_downloads(df: pd.DataFrame, base_name: str, title: str):
+    ts = datetime.now(TZ).strftime("%Y%m%d_%H%M%S")
+    csv_bytes = df.to_csv(index=False).encode("utf-8-sig")
+    txt_bytes = df_to_txt_lines(df, title).encode("utf-8")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.download_button(
+            "⬇️ Скачать CSV",
+            data=csv_bytes,
+            file_name=f"{base_name}_{ts}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    with c2:
+        st.download_button(
+            "⬇️ Скачать TXT",
+            data=txt_bytes,
+            file_name=f"{base_name}_{ts}.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
+
+# ====== СВОДНЫЕ КНОПКИ/ТАБЛИЦЫ ======
+st.subheader("🧾 Сводные таблицы")
+
+colA, colB = st.columns(2)
+
+with colA:
+    st.markdown("### 📦 Инвентаризация")
+    if st.session_state.temp_facts:
+        st.dataframe(pd.DataFrame(st.session_state.temp_facts), use_container_width=True, height=220)
+        if st.button("📦 Сформировать инвентаризацию", type="primary", disabled=st.session_state.finalized_facts):
+            st.session_state.finalized_facts = True
+    else:
+        st.info("Пока нет временных записей по остаткам.")
+
+    if st.session_state.finalized_facts:
+        agg_f = aggregate_rows(st.session_state.temp_facts)
+        st.success("Готово! Ниже — сводная таблица инвентаризации.")
+        st.dataframe(agg_f, use_container_width=True, height=280)
+        make_downloads(agg_f, base_name="stock", title="Инвентаризация")
+
+with colB:
+    st.markdown("### 🧾 Заказ на закуп")
+    if st.session_state.temp_orders:
+        st.dataframe(pd.DataFrame(st.session_state.temp_orders), use_container_width=True, height=220)
+        if st.button("🧾 Сформировать заказ", type="primary", disabled=st.session_state.finalized_orders):
+            st.session_state.finalized_orders = True
+    else:
+        st.info("Пока нет временных записей по заказу.")
+
+    if st.session_state.finalized_orders:
+        agg_o = aggregate_rows(st.session_state.temp_orders)
+        st.success("Готово! Ниже — сводная таблица заказа.")
+        st.dataframe(agg_o, use_container_width=True, height=280)
+        make_downloads(agg_o, base_name="order", title="Заказ")
+
+# ====== ОТЛАДКА ======
+if show_debug:
     st.divider()
+    st.subheader("🪲 DEBUG")
+    st.write("finalized_facts:", st.session_state.finalized_facts,
+             "finalized_orders:", st.session_state.finalized_orders)
+    st.write("temp_facts:", st.session_state.temp_facts)
+    st.write("temp_orders:", st.session_state.temp_orders)
+    st.write("counters (live):", st.session_state.counters)
 
-# === UI: список товаров ===
-for name in PRODUCTS:
-    product_block(name)
-
-# === Своды ===
-st.subheader("🧾 Свод по инвентаризации")
-if st.session_state.facts:
-    st.dataframe(st.session_state.facts)
-    if st.button("📦 Сформировать инвентаризацию"):
-        filename = f"stock_{datetime.now(TZ).strftime('%Y%m%d_%H%M%S')}.txt"
-        filepath = os.path.join("milk_stocks", filename)
-        os.makedirs("milk_stocks", exist_ok=True)
-        with open(filepath, "w", encoding="utf-8") as f:
-            for row in st.session_state.facts:
-                f.write(f"{row[2]} ({row[3]}): {row[4]} шт.\n")
-        upload_to_drive(st.secrets["drive"]["inventariz_id"], filepath)
-        save_to_sheet("facts", st.session_state.facts)
-        st.success(f"Инвентаризация сохранена и загружена: {filename}")
-else:
-    st.info("Нет записей по остаткам")
-
-st.subheader("🧾 Свод по заказу")
-if st.session_state.orders:
-    st.dataframe(st.session_state.orders)
-    if st.button("🧾 Сформировать заказ"):
-        filename = f"order_{datetime.now(TZ).strftime('%Y%m%d_%H%M%S')}.txt"
-        filepath = os.path.join("milk_orders", filename)
-        os.makedirs("milk_orders", exist_ok=True)
-        with open(filepath, "w", encoding="utf-8") as f:
-            for row in st.session_state.orders:
-                f.write(f"{row[2]} ({row[3]}): {row[4]} шт.\n")
-        upload_to_drive(st.secrets["drive"]["order_lists_id"], filepath)
-        save_to_sheet("orders", st.session_state.orders)
-        st.success(f"Заказ сохранён и загружен: {filename}")
-else:
-    st.info("Нет записей по заказу")
+# Финальный котик
+st.markdown("""
+<hr>
+<div class="kitty">
+/\\_/\\  <br>
+( •_•)  спасибо!<br>
+/>🍶   возвращайся за сырочком
+</div>
+""", unsafe_allow_html=True)
