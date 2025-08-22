@@ -16,8 +16,8 @@ import streamlit as st
 st.set_page_config(page_title="🏨 Отель Голан — Молочный склад", page_icon="🥛", layout="wide")
 
 TZ = ZoneInfo("Asia/Jerusalem")
-ORDERS_DIR = "/mnt/data/milk_orders"
-STOCKS_DIR = "/mnt/data/milk_stocks"
+ORDERS_DIR = "milk_orders"
+STOCKS_DIR = "milk_stocks"
 os.makedirs(ORDERS_DIR, exist_ok=True)
 os.makedirs(STOCKS_DIR, exist_ok=True)
 
