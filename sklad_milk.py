@@ -15,48 +15,100 @@ today_str = datetime.now(TZ).strftime("%d.%m.%Y")
 # ======= CSS: ТЁМНАЯ ТЕМА И КНОПКИ =======
 st.markdown("""
 <style>
-body {
-  background-color: #000000;
-  color: #ffffff;
+/* 🔲 Тёмный фон, белый текст */
+html, body, [data-testid="stAppViewContainer"] {
+  background:#000 !important; color:#fff !important;
 }
-[data-testid="stAppViewContainer"] {
-  background-color: #000000;
-  color: white;
-}
-h1, h2, h3, .stButton>button, .stTextInput>div>input {
-  color: white;
-}
-button, .stButton>button {
-  font-size: 18px !important;
-  padding: .55rem .9rem !important;
-  border-radius: 14px !important;
-}
-.block-container { padding-top: 1.5rem; padding-bottom: 3rem; }
-.st-expanderHeader {
+
+/* 📱 Крупный шрифт по умолчанию */
+html, body, [class*="css"] {
   font-size: 20px !important;
 }
+.block-container {
+  padding-top: 1.4rem; padding-bottom: 3rem;
+}
+
+/* 🧾 Заголовки */
+h1, h2, h3 { letter-spacing: .3px; color:#fff; }
+.st-expanderHeader { font-size: 22px !important; }
+
+/* 🔘 Кнопки — удобные и широкие */
+button, .stButton>button {
+  font-size: 20px !important;
+  padding: .75rem 1.1rem !important;
+  border-radius: 16px !important;
+  width: 100% !important;
+}
+
+/* ✍️ Инпуты: делаем читаемыми */
+.stTextInput input, .stNumberInput input {
+  background:#111 !important;
+  color:#fff !important;
+  border:1px solid #666 !important;
+}
+.stTextInput input:disabled, .stNumberInput input:disabled {
+  color:#fff !important;
+  background:#111 !important;
+  border-color:#777 !important;
+  opacity: 1 !important;
+}
+
+/* 📊 Таблицы (DataFrame) — светлые строки на тёмном фоне */
+[data-testid="stDataFrame"] * {
+  color:#fff !important;
+}
+[data-testid="stDataFrame"] .st-emotion-cache-1y4p8pa {
+  background:#0b0b0b !important;
+}
+[data-testid="stDataFrame"] thead th, [data-testid="stDataFrame"] tbody td {
+  border-color:#333 !important;
+}
+
+/* 🔢 Красивая плашка количества */
+.qty {
+  font-size: 28px; font-weight: 900;
+  padding: .25rem .8rem; border-radius: 14px;
+  background: #111; color:#fff; display:inline-block;
+  min-width: 90px; text-align:center; border:1px solid #555;
+}
+
+/* 🖥 Кнопка "на весь экран" */
 .fullscreen-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #444;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 10px;
-  z-index: 1000;
-  cursor: pointer;
+  position: fixed; top: 18px; right: 18px;
+  background: #333; color: #fff; padding: 10px 14px;
+  border-radius: 12px; z-index: 1000; cursor: pointer;
+  border:1px solid #555;
+}
+
+/* 📱 Ещё крупнее на телефоне */
+@media (max-width: 520px) {
+  html, body, [class*="css"] {
+    font-size: 22px !important;
+  }
+  .st-expanderHeader {
+    font-size: 24px !important;
+  }
+  button, .stButton>button {
+    font-size: 22px !important;
+    padding: .9rem 1.2rem !important;
+  }
+  .qty {
+    font-size: 32px;
+    min-width: 110px;
+  }
 }
 </style>
 """, unsafe_allow_html=True)
 
+
 # ======= ПРИВЕТСТВИЕ =======
 st.markdown(f"""
-# 🥛 מַחְסָן חָלָב — Golan Hotel
+# 🥛 מַחְסָן חָלָב — 🌿 Golan Hotel 🌿
 
 <span style="font-family:monospace">
-/\\_/\\ ☆ привет!<br>
+/\\_/\\ ☆ привет👨🏻‍🍳!<br>
 ( o.o ) Сегодня: <b>{today_str}</b><br>
-> ^ < считай сырки, йогурты и молочко
+> 🥕 < считай сырки, йогурты и молочко
 </span>
 """, unsafe_allow_html=True)
 
