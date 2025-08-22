@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 🫒Golan Hotel🫒 — МОЛОЧНЫЙ СКЛАД (Streamlit)
+# 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (Streamlit)
 
 import streamlit as st
 import pandas as pd
@@ -7,7 +7,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 # ======= НАСТРОЙКИ СТРАНИЦЫ =======
-st.set_page_config(page_title="🥛 Молочный склад — 🫒Golan Hotel🫒", layout="wide")
+st.set_page_config(page_title="🥛 Молочный склад — Golan Hotel", layout="wide")
 
 TZ = ZoneInfo("Asia/Jerusalem")
 today_str = datetime.now(TZ).strftime("%d.%m.%Y")
@@ -101,8 +101,6 @@ PRODUCTS = {
     "בלינצ׳ס שוקולד 🍫": "blintz_choco",
     "בלינצ׳ס תפוח 🍏": "blintz_apple"
 }
-
-
 # ======= СОСТОЯНИЕ =======
 if "final_facts" not in st.session_state:
     st.session_state.final_facts = []
@@ -122,57 +120,29 @@ for prod_label, prod_key in PRODUCTS.items():
 
         col1, col2 = st.columns(2)
 
-        # === Фактический остаток ===
         with col1:
             st.markdown("**Фактический остаток**")
             if f"fact_{prod_key}" not in st.session_state:
                 st.session_state[f"fact_{prod_key}"] = 0.0
-
-            # Кнопки
             if st.button(f"➖ {step}", key=f"fact_minus_{prod_key}"):
                 st.session_state[f"fact_{prod_key}"] = max(0.0, st.session_state[f"fact_{prod_key}"] - step)
             if st.button(f"➕ {step}", key=f"fact_plus_{prod_key}"):
                 st.session_state[f"fact_{prod_key}"] += step
-
-            # Поле отображения
             st.text_input("Факт:", value=st.session_state[f"fact_{prod_key}"], disabled=True, key=f"fact_display_{prod_key}")
-
-            # Ручной ввод только для מעדנים
-            if "מעדנים" in prod_label:
-                st.session_state[f"fact_{prod_key}"] = st.number_input(
-                    "Ручной ввод факта:",
-                    min_value=0.0,
-                    step=step,
-                    value=st.session_state[f"fact_{prod_key}"],
-                    key=f"fact_input_{prod_key}"
-                )
-
-            # Сохранить
             if st.button("📂 Сохранить факт", key=f"save_fact_{prod_key}"):
-                st.session_state.final_facts.append({
-                    "product": prod_label,
-                    "qty": st.session_state[f"fact_{prod_key}"]
-                })
+                st.session_state.final_facts.append({"product": prod_label, "qty": st.session_state[f"fact_{prod_key}"]})
 
-        # === Заказ ===
         with col2:
             st.markdown("**Заказать дополнительно**")
             if f"order_{prod_key}" not in st.session_state:
                 st.session_state[f"order_{prod_key}"] = 0.0
-
             if st.button(f"➖ {step}", key=f"order_minus_{prod_key}"):
                 st.session_state[f"order_{prod_key}"] = max(0.0, st.session_state[f"order_{prod_key}"] - step)
             if st.button(f"➕ {step}", key=f"order_plus_{prod_key}"):
                 st.session_state[f"order_{prod_key}"] += step
-
             st.text_input("Заказ:", value=st.session_state[f"order_{prod_key}"], disabled=True, key=f"order_display_{prod_key}")
-
             if st.button("✅ Подтвердить заказ", key=f"save_order_{prod_key}"):
-                st.session_state.final_orders.append({
-                    "product": prod_label,
-                    "qty": st.session_state[f"order_{prod_key}"]
-                })
-
+                st.session_state.final_orders.append({"product": prod_label, "qty": st.session_state[f"order_{prod_key}"]})
 
 # ======= ТАБЛИЦЫ =======
 def make_df(entries):
