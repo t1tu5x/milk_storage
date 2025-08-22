@@ -42,7 +42,7 @@ creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"],
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ])
-sheet = gspread.authorize(creds).open_by_key(st.secrets["sheets"]["milk_sheet_id"])
+
 drive = build("drive", "v3", credentials=creds)
 
 # === Google Drive helpers ===
