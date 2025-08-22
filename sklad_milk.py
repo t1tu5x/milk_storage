@@ -1,9 +1,8 @@
 # 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (офлайн-версия)
 
 import streamlit as st
-import pandas as pd
-from datetime import datetime
-from zoneinfo import ZoneInfo
+
+# ВСТАВЛЯЕМ ЭТОТ БЛОК СРАЗУ ПОСЛЕ "import streamlit as st"
 
 st.markdown("""
     <style>
@@ -13,32 +12,49 @@ st.markdown("""
     }
     h1, h2, h3, h4, h5, h6, p, span, div, label {
         color: white !important;
+        font-size: 22px !important;
     }
-    .stButton>button, .stDownloadButton>button, .stTextInput>div>input, .stNumberInput>div>input {
+    .stButton>button, .stDownloadButton>button {
         background-color: white !important;
         color: black !important;
-        font-size: 24px !important;
+        font-size: 22px !important;
+        padding: 12px 24px !important;
+        border-radius: 10px !important;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
         background-color: #ddd !important;
     }
-    .stTextInput>div>input::placeholder, .stNumberInput>div>input::placeholder {
-        color: gray !important;
+    .stTextInput>div>input,
+    .stNumberInput>div>input {
+        background-color: white !important;
+        color: black !important;
+        font-size: 22px !important;
+    }
+    .stNumberInput>label, .stTextInput>label {
+        font-size: 20px !important;
+        color: white !important;
     }
     .st-expander {
         background-color: #111 !important;
         border: 1px solid white !important;
+        border-radius: 10px;
     }
     .st-expander>summary {
         color: white !important;
-        font-size: 20px !important;
+        font-size: 24px !important;
     }
     .stSelectbox>div>div>div {
         background-color: white !important;
         color: black !important;
+        font-size: 22px !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
+import pandas as pd
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 
 
 # ======= КОТИК ФИНАЛ =======
