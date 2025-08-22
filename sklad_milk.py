@@ -1,151 +1,111 @@
-# 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (офлайн-версия)
+# -*- coding: utf-8 -*-
+# 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (Streamlit Offline Version)
 
 import streamlit as st
-
-# СТИЛЬ
-
-st.markdown("""
-<style>
-/* БАЗА: тёмный фон + белый текст */
-html, body, [data-testid="stAppViewContainer"] {
-  background:#000 !important; color:#fff !important;
-}
-
-/* Базовый размер шрифта (крупнее) */
-html, body, [class*="css"] { font-size: 20px !important; }
-.block-container { padding-top: 1.4rem; padding-bottom: 3rem; }
-
-/* Заголовки и экспандеры */
-h1, h2, h3 { letter-spacing: .3px; color:#fff; }
-.st-expanderHeader { font-size: 22px !important; }
-
-/* Кнопки — крупные и удобные */
-button, .stButton>button {
-  font-size: 20px !important;
-  padding: .75rem 1.1rem !important;
-  border-radius: 16px !important;
-  width: 100% !important;
-}
-
-/* Инпуты: делаем читаемыми в disabled-состоянии */
-.stTextInput input, .stNumberInput input {
-  background:#111 !important; color:#fff !important; border:1px solid #666 !important;
-}
-.stTextInput input:disabled, .stNumberInput input:disabled {
-  color:#fff !important; opacity:1 !important; background:#111 !important; border-color:#777 !important;
-}
-
-/* Таблицы (DataFrame) – белые шрифты */
-[data-testid="stDataFrame"] * {
-  color:#fff !important;
-}
-[data-testid="stDataFrame"] .st-emotion-cache-1y4p8pa { /* ячейки */
-  background:#0b0b0b !important;
-}
-[data-testid="stDataFrame"] thead th, [data-testid="stDataFrame"] tbody td {
-  border-color:#333 !important;
-}
-
-/* Плашка текущего количества */
-.qty {
-  font-size: 28px; font-weight: 900;
-  padding: .25rem .8rem; border-radius: 14px;
-  background: #111; color:#fff; display:inline-block;
-  min-width: 90px; text-align:center; border:1px solid #555;
-}
-
-/* Мобильная адаптация: всё ЕЩЁ КРУПНЕЕ */
-@media (max-width: 520px) {
-  html, body, [class*="css"] { font-size: 22px !important; }
-  .st-expanderHeader { font-size: 24px !important; }
-  button, .stButton>button { font-size: 22px !important; padding: .9rem 1.2rem !important; }
-  .qty { font-size: 32px; min-width: 110px; }
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-st.markdown("""
-<style>
-/* Чёрный фон страницы */
-html, body, [class*="css"] {
-    background-color: black !important;
-}
-
-/* Белый текст по умолчанию */
-h1, h2, h3, h4, h5, h6, p, span, div, label {
-    color: white !important;
-    font-size: 22px !important;
-}
-
-/* Текстовые и числовые поля — белый фон, чёрный текст */
-input[type="text"], input[type="number"] {
-    background-color: white !important;
-    color: black !important;
-    font-size: 22px !important;
-}
-
-/* Кнопки — белый фон, чёрный текст */
-button[kind="primary"], .stButton>button, .stDownloadButton>button {
-    background-color: white !important;
-    color: black !important;
-    font-size: 20px !important;
-    padding: 12px 24px !important;
-    border-radius: 8px !important;
-    border: none !important;
-}
-
-/* Hover эффект на кнопках */
-button[kind="primary"]:hover, .stButton>button:hover, .stDownloadButton>button:hover {
-    background-color: #e0e0e0 !important;
-    color: black !important;
-}
-
-/* Expander блоки — чёрный фон, белый текст */
-.st-expander {
-    background-color: #111 !important;
-    border: 1px solid white !important;
-    border-radius: 10px !important;
-}
-.st-expander summary {
-    color: white !important;
-    font-size: 22px !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
 import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+# ======= НАСТРОЙКИ СТРАНИЦЫ =======
+st.set_page_config(page_title="🥛 Молочный склад — Golan Hotel", layout="wide")
 
+TZ = ZoneInfo("Asia/Jerusalem")
+today_str = datetime.now(TZ).strftime("%d.%m.%Y")
 
-# ======= КОТИК ФИНАЛ =======
+# ======= CSS: ТЁМНАЯ ТЕМА И КНОПКИ =======
+st.markdown("""
+<style>
+body {
+  background-color: #000000;
+  color: #ffffff;
+}
+[data-testid="stAppViewContainer"] {
+  background-color: #000000;
+  color: white;
+}
+h1, h2, h3, .stButton>button, .stTextInput>div>input {
+  color: white;
+}
+button, .stButton>button {
+  font-size: 18px !important;
+  padding: .55rem .9rem !important;
+  border-radius: 14px !important;
+}
+.block-container { padding-top: 1.5rem; padding-bottom: 3rem; }
+.st-expanderHeader {
+  font-size: 20px !important;
+}
+.fullscreen-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #444;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  z-index: 1000;
+  cursor: pointer;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ======= КОТИК =======
 st.markdown("""
 <hr>
 <div style="color:white;font-size:20px">
 /\\_/\\  <br>
-( •_•)  Выбери свой сырок и молочкобро!<br>
+( •_•)  Выбери свой сырок и молочко бро!<br>
 />🧀<🍶🍶🍶🍶
 </div>
 """, unsafe_allow_html=True)
 
-TZ = ZoneInfo("Asia/Jerusalem")
-TODAY = datetime.now(TZ).strftime("%d.%m.%Y")
-st.set_page_config(page_title="🥛 Молочный склад — 🌿Golan Hotel🌿", layout="wide")
+# ======= ДАННЫЕ ПРОДУКТОВ С ЭМОДЗИ =======
+PRODUCTS = {
+    "גבינה גאודה 🧀": "gauda",
+    "גבינה צהובה 🧀": "yellow_cheese",
+    "גבינה מוצרלה 🧀": "mozzarella",
+    "גבינה מוצרלה ארוך 🧀": "mozzarella_long",
+    "פרומעז 🐐": "fromage",
+    "גבינת שמנת 🍶": "cream_cheese",
+    "גבינת שום 🧄": "garlic_cheese",
+    "גבינת זיתים 🫒": "olive_cheese",
+    "גבינה לבנה 🥛": "white_cheese",
+    "קוטג׳ 🧂": "cottage",
+    "רוקפור 💙": "roquefort",
+    "קממבר 🧀": "camembert",
+    "ברי 🧀": "brie",
+    "מוצרלה טחון 🧀": "grated_mozzarella",
+    "מעדנים תות 🍓": "dessert_strawberry",
+    "מעדנים אֲפַרסֵק 🍑": "dessert_peach",
+    "מעדנים יוגורט 🍦": "dessert_yogurt",
+    "מעדנים פודינג 🍮": "dessert_pudding",
+    "בולגרית  5% 🧂": "bulgarian_5",
+    "בולגרית  24% 🧂": "bulgarian_24",
+    "מוצרלה בייבי 👶": "mozzarella_baby",
+    "כדורים מוצרלה 🧆": "mozzarella_balls",
+    "צפתית 🧀": "tsfatit",
+    "יוגורט 🍶": "yogurt",
+    "נעמה 🧀": "naama",
+    "גבינה מגורדת 🧀": "grated_cheese",
+    "גבינה מוצרלה מגורדת 🧀": "mozzarella_grated",
+    "שמנת 🥣": "cream",
+    "חממה 🌿": "greenhouse",
+    "שמנת מפוסטרת 🥛": "pasteurized_cream",
+    "חלב 🥛": "milk",
+    "ביצים קרטון 🥚": "eggs_carton",
+    "רביולי גבינה 🍝": "ravioli_cheese",
+    "רביולי בטטה 🍠": "ravioli_sweetpotato",
+    "מוצרלה מטוגנת 🍤": "mozzarella_fried",
+    "בלינצ׳ס נוגה 🥞": "blintz_noga",
+    "בלינצ׳ס שוקולד 🍫": "blintz_choco",
+    "בלינצ׳ס תפוח 🍏": "blintz_apple"
+}
 
-
-# ======= СПИСОК ПРОДУКТОВ =======
-PRODUCTS = [
-    "🧀 גבינה גאודה", "🧀 גבינה צהובה", "🧀 גבינה מוצרלה", "🧀 גבינה מוצרלה ארוך", "🐐 פרומעז",
-    "🥯 גבינת שמנת", "🧄 גבינת שום", "🫒 גבינת זיתים", "🧀 גבינה לבנה", "🏠 קוטג׳", "🌿 רוקפור",
-    "🧀 קממבר", "🧀 ברי", "🧀 מוצרלה טחון", "🍓 מעדנים תות", "🍑 מעדנים אֲפַרסֵק", "🥣 מעדנים יוגורט",
-    "🍮 מעדנים פודינג", "🧂 בולגרית  5%", "🧂 בולגרית  24%", "🧀 מוצרלה בייבי", "🧀 כדורים מוצרלה",
-    "🧀 צפתית", "🥣 יוגורט", "🧒 נעמה", "🧀 גבינה מגורדת", "🧀 גבינה מוצרלה מגורדת", "🍶 שמנת", "🌿 חממה",
-    "🍶 שמנת מפוסטרת", "🥛 חלב", "🥚 ביצים קרטון", "🧀 רביולי גבינה", "🍠 רביולי בטטה", "🍤 מוצרלה מטוגנת",
-    "🥞 בלינצ׳ס נוגה", "🍫 בלינצ׳ס שוקולד", "🍏 בלינצ׳ס תפוח"
-]
+# ======= СОСТОЯНИЕ =======
+if "final_facts" not in st.session_state:
+    st.session_state.final_facts = []
+if "final_orders" not in st.session_state:
+    st.session_state.final_orders = []
 
 # ======= ВВОД КОЛИЧЕСТВ =======
 st.markdown(f"# 🥛 Молочный склад — Golan Hotel")
@@ -157,56 +117,70 @@ for prod in PRODUCTS:
     size_type = "small" if "מעדנים" in prod else "big"
     step = 1 if size_type == "small" else 0.5
 
-    with st.expander(prod):
-        col1, col2 = st.columns([1, 1])
+for prod_label, prod_key in PRODUCTS.items():
+    with st.expander(prod_label):
+        col1, col2 = st.columns(2)
+
+        # --- Фактический остаток ---
         with col1:
             st.markdown("**Фактический остаток**")
-            if f"fact_{prod}" not in st.session_state:
-                st.session_state[f"fact_{prod}"] = 0.0
-            if st.button("➖", key=f"fact_minus_{prod}"):
-                st.session_state[f"fact_{prod}"] = max(0.0, st.session_state[f"fact_{prod}"] - step)
-            if st.button("➕", key=f"fact_plus_{prod}"):
-                st.session_state[f"fact_{prod}"] += step
-            st.text_input("Факт:", value=st.session_state[f"fact_{prod}"], key=f"fact_display_{prod}", disabled=True)
-            if st.button("💾 Сохранить", key=f"fact_save_{prod}"):
-                st.session_state.final_facts.append({"product": prod, "qty": st.session_state[f"fact_{prod}"]})
+            if f"fact_{prod_key}" not in st.session_state:
+                st.session_state[f"fact_{prod_key}"] = 0.0
+            if st.button("➖ 0.5", key=f"fact_minus_{prod_key}"):
+                st.session_state[f"fact_{prod_key}"] = max(0.0, st.session_state[f"fact_{prod_key}"] - 0.5)
+            if st.button("➕ 0.5", key=f"fact_plus_{prod_key}"):
+                st.session_state[f"fact_{prod_key}"] += 0.5
+            st.text_input("Факт:", value=st.session_state[f"fact_{prod_key}"], disabled=True, key=f"fact_display_{prod_key}")
+            if st.button("💾 Сохранить факт", key=f"save_fact_{prod_key}"):
+                st.session_state.final_facts.append({"product": prod_label, "qty": st.session_state[f"fact_{prod_key}"]})
+
+        # --- Заказ ---
         with col2:
             st.markdown("**Заказать дополнительно**")
-            if f"order_{prod}" not in st.session_state:
-                st.session_state[f"order_{prod}"] = 0.0
-            if st.button("➖", key=f"order_minus_{prod}"):
-                st.session_state[f"order_{prod}"] = max(0.0, st.session_state[f"order_{prod}"] - step)
-            if st.button("➕", key=f"order_plus_{prod}"):
-                st.session_state[f"order_{prod}"] += step
-            st.text_input("Заказ:", value=st.session_state[f"order_{prod}"], key=f"order_display_{prod}", disabled=True)
-            if st.button("✅ Подтвердить", key=f"order_save_{prod}"):
-                st.session_state.final_orders.append({"product": prod, "qty": st.session_state[f"order_{prod}"]})
+            if f"order_{prod_key}" not in st.session_state:
+                st.session_state[f"order_{prod_key}"] = 0.0
+            if st.button("➖ 0.5", key=f"order_minus_{prod_key}"):
+                st.session_state[f"order_{prod_key}"] = max(0.0, st.session_state[f"order_{prod_key}"] - 0.5)
+            if st.button("➕ 0.5", key=f"order_plus_{prod_key}"):
+                st.session_state[f"order_{prod_key}"] += 0.5
+            st.text_input("Заказ:", value=st.session_state[f"order_{prod_key}"], disabled=True, key=f"order_display_{prod_key}")
+            if st.button("✅ Подтвердить заказ", key=f"save_order_{prod_key}"):
+                st.session_state.final_orders.append({"product": prod_label, "qty": st.session_state[f"order_{prod_key}"]})
 
-# ======= ТАБЛИЦЫ =======
+# ======= СОЗДАНИЕ ТАБЛИЦ =======
 def make_df(entries):
     df = pd.DataFrame(entries)
     return df.groupby("product")["qty"].sum().reset_index()
 
 st.subheader("📦 Сводные таблицы")
 
+# ======= ИНВЕНТАРИЗАЦИЯ =======
 if st.session_state.final_facts:
     df1 = make_df(st.session_state.final_facts)
-    st.markdown(f"### ✅ Инвентаризация (ספירת מלאי) — {TODAY}")
-    st.dataframe(df1, use_container_width=True)
-    st.download_button("⬇️ Скачать инвентаризацию CSV", data=df1.to_csv(index=False), file_name=f"inventory_{TODAY}.csv", mime="text/csv")
+    st.markdown(f"### ✅ Инвентаризация (ספירת מלאי) — {today_str}")
+    st.dataframe(df1)
+    csv1 = df1.to_csv(index=False).encode("utf-8")
+    st.download_button("⬇️ Скачать CSV (Инвентаризация)", data=csv1, file_name=f"inventariz_{today_str}.csv", mime="text/csv")
 
+# ======= ЗАКУП =======
 if st.session_state.final_orders:
     df2 = make_df(st.session_state.final_orders)
-    st.markdown(f"### 📥 Заказ (הזמנה) — {TODAY}")
-    st.dataframe(df2, use_container_width=True)
-    st.download_button("⬇️ Скачать заказ CSV", data=df2.to_csv(index=False), file_name=f"order_{TODAY}.csv", mime="text/csv")
+    st.markdown(f"### 📥 Закуп (הזמנה) — {today_str}")
+    st.dataframe(df2)
+    csv2 = df2.to_csv(index=False).encode("utf-8")
+    st.download_button("⬇️ Скачать CSV (Закуп)", data=csv2, file_name=f"zakup_{today_str}.csv", mime="text/csv")
 
-# ======= КОТИК ФИНАЛ =======
+# ======= КНОПКА НА ВЕСЬ ЭКРАН =======
 st.markdown("""
-<hr>
-<div style="color:white;font-size:20px">
-/\\_/\\  <br>
-( •_•)  спасибо!<br>
-/>🍶   возвращайся за сырочком
-</div>
+<button class="fullscreen-btn" onclick="document.documentElement.requestFullscreen()">🖥️ На весь экран</button>
+""", unsafe_allow_html=True)
+
+# ======= ASCII КОТИК =======
+st.markdown("""
+---
+<span style="font-family:monospace">
+/\\_/\\<br>
+( •_•)  спасибо за работу<br>
+/>🍶   приходи за молочком!
+</span>
 """, unsafe_allow_html=True)
