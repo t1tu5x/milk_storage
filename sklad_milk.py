@@ -63,11 +63,45 @@ st.markdown("""
 # ======= ПРОДУКТЫ =======
 PRODUCTS = {
     "גבינה גאודה 🧀": "gauda",
+    "גבינה צהובה 🧀": "yellow_cheese",
+    "גבינה מוצרלה 🧀": "mozzarella",
+    "גבינה מוצרלה ארוך 🧀": "mozzarella_long",
+    "פרומעז 🐐": "fromage",
+    "גבינת שמנת 🍶": "cream_cheese",
+    "גבינת שום 🧄": "garlic_cheese",
+    "גבינת זיתים 🫒": "olive_cheese",
+    "גבינה לבנה 🥛": "white_cheese",
+    "קוטג׳ 🧂": "cottage",
+    "רוקפור 💙": "roquefort",
+    "קממבר 🧀": "camembert",
+    "ברי 🧀": "brie",
+    "מוצרלה טחון 🧀": "grated_mozzarella",
     "מעדנים תות 🍓": "dessert_strawberry",
+    "מעדנים אֲפַרסֵק 🍑": "dessert_peach",
     "מעדנים יוגורט 🍦": "dessert_yogurt",
+    "מעדנים פודינג 🍮": "dessert_pudding",
+    "בולגרית  5% 🧂": "bulgarian_5",
+    "בולגרית  24% 🧂": "bulgarian_24",
+    "מוצרלה בייבי 👶": "mozzarella_baby",
+    "כדורים מוצרלה 🧆": "mozzarella_balls",
     "צפתית 🧀": "tsfatit",
+    "יוגורט 🍶": "yogurt",
+    "נעמה 🧀": "naama",
+    "גבינה מגורדת 🧀": "grated_cheese",
+    "גבינה מוצרלה מגורדת 🧀": "mozzarella_grated",
+    "שמנת 🥣": "cream",
+    "חממה 🌿": "greenhouse",
+    "שמנת מפוסטרת 🥛": "pasteurized_cream",
     "חלב 🥛": "milk",
+    "ביצים קרטון 🥚": "eggs_carton",
+    "רביולי גבינה 🍝": "ravioli_cheese",
+    "רביולי בטטה 🍠": "ravioli_sweetpotato",
+    "מוצרלה מטוגנת 🍤": "mozzarella_fried",
+    "בלינצ׳ס נוגה 🥞": "blintz_noga",
+    "בלינצ׳ס שוקולד 🍫": "blintz_choco",
+    "בלינצ׳ס תפוח 🍏": "blintz_apple"
 }
+
 
 # ======= СОСТОЯНИЕ =======
 if "final_facts" not in st.session_state:
