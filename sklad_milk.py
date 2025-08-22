@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (упрощённая офлайн-версия)
+# 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (офлайн-версия без Google API)
 # Ввод только кнопками ±0.5, временное хранилище, отмена последней записи,
-# сводные таблицы + кнопки скачивания TXT/CSV. Без Google Drive/Sheets.
+# сводные таблицы + кнопки скачивания TXT/CSV. Заглушки upload_to_drive/save_to_sheet.
 
 import os
 from datetime import datetime
@@ -16,12 +16,19 @@ TZ = ZoneInfo("Asia/Jerusalem")
 PAGE_TITLE = "🥛 Молочный склад — Golan Hotel"
 st.set_page_config(page_title=PAGE_TITLE, layout="wide")
 
+# ====== ЗАГЛУШКИ ДЛЯ БЕЗОПАСНОСТИ ======
+def upload_to_drive(*args, **kwargs):
+    # no-op: убрали Drive
+    return None
+
+def save_to_sheet(*args, **kwargs):
+    # no-op: убрали Sheets
+    return None
+
 # ====== СТИЛЬ (мобила/крупные элементы/няшный вайб) ======
 st.markdown("""
 <style>
-:root { --g-size: 1.05rem; --g-h: 1.15rem; }
 html, body, [class*="css"]  { font-size: 18px !important; }
-h1, h2, h3 { letter-spacing: .3px; }
 .block-container { padding-top: 1.2rem; padding-bottom: 3rem; }
 button, .stButton>button {
   font-size: 18px !important; padding: .55rem .9rem !important;
@@ -48,7 +55,7 @@ button, .stButton>button {
 </style>
 """, unsafe_allow_html=True)
 
-# ====== ASCII-кошки для настроения ======
+# ====== ASCII-кошки ======
 st.markdown(
 f"""
 # {PAGE_TITLE}  
@@ -60,8 +67,7 @@ f"""
 """,
 unsafe_allow_html=True
 )
-
-st.caption("Совет: кликай только «➕/➖ 0.5». Чтобы записать — жми «💾 Сохранить факт» или «✅ Подтвердить заказ». Отменить можно только **последнюю** запись по товару до формирования таблиц.")
+st.caption("Кликай только «➕/➖ 0.5». Чтобы записать — жми «💾 Сохранить факт» или «✅ Подтвердить заказ». Отменить можно только **последнюю** запись по товару до формирования таблиц.")
 
 # ====== СПИСОК ПРОДУКТОВ (иврит, строго заданный порядок) ======
 PRODUCTS = [
@@ -105,7 +111,7 @@ PRODUCTS = [
     "בלינצ׳ס תפוח",
 ]
 
-# Небольшая таблица эмодзи под настроение
+# Эмодзи под настроение
 EMOJI = {
     "חלב": "🥛", "יוגורט": "🥛", "קוטג׳": "🥣", "גבינה": "🧀", "ביצים": "🥚",
     "רביולי": "🥟", "בלינצ׳ס": "🥞", "מעדנים": "🍮", "אֲפַרסֵק": "🍑", "תות": "🍓",
@@ -118,11 +124,11 @@ def emoji_for(name: str) -> str:
 
 # ====== SESSION STATE ======
 def _init_state():
-    if "temp_facts" not in st.session_state:   # список записей фактов (временное)
-        st.session_state.temp_facts = []       # элементы: dict(product, size, qty, ts)
-    if "temp_orders" not in st.session_state:  # список записей заказов (временное)
+    if "temp_facts" not in st.session_state:   # временные записи фактов
+        st.session_state.temp_facts = []       # dict(timestamp, product, size, qty)
+    if "temp_orders" not in st.session_state:  # временные записи заказов
         st.session_state.temp_orders = []
-    if "counters" not in st.session_state:     # счётчики по товарам: {'product_key': {'fact':0.0,'order':0.0,'size':'big'}}
+    if "counters" not in st.session_state:     # {'product_key': {'fact':0.0,'order':0.0,'size':'big'}}
         st.session_state.counters = {}
     if "finalized_facts" not in st.session_state:
         st.session_state.finalized_facts = False
@@ -132,7 +138,7 @@ def _init_state():
 _init_state()
 
 def pkey(name: str) -> str:
-    return name.replace(" ", "_").replace("'", "_").replace("״", "_").replace("״", "_")
+    return name.replace(" ", "_").replace("'", "_").replace("״", "_")
 
 def now():
     dt = datetime.now(TZ)
@@ -145,7 +151,7 @@ def sub05(x: float) -> float:
     y = round((x - 0.5) * 2) / 2.0
     return max(0.0, y)
 
-# ====== Сайдбар: действия с сессией ======
+# ====== Сайдбар ======
 with st.sidebar:
     st.header("⚙️ Управление")
     if st.button("🧽 Новая сессия (очистить всё)", type="primary"):
@@ -166,20 +172,19 @@ def product_block(name: str):
     em = emoji_for(name)
     st.markdown(f'<div class="g-card"><h3>{em} {name}<span class="g-badge">milk</span></h3>', unsafe_allow_html=True)
 
-    # Выбор размера
-    size = st.segmented_control(
+    # Размер (по умолчанию — big)
+    opt = st.segmented_control(
         "Размер единицы",
-        options=[("Большой", "big"), ("Маленький", "small")],
-        format_func=lambda x: x[0],
+        options=["Большой", "Маленький"],
+        default="Большой",
         key=f"{key}_size_seg",
-        default=("Большой", "big"),
-    )[1]
+    )
+    size = "big" if opt == "Большой" else "small"
     st.session_state.counters[key]["size"] = size
 
-    # Две колонки: ФАКТ / ЗАКАЗ
     c1, c2 = st.columns(2)
 
-    # ===== ФАКТИЧЕСКИЙ ОСТАТОК =====
+    # ===== ФАКТ =====
     with c1:
         st.markdown("**Фактический остаток**  <span class='g-chip'>±0.5</span>", unsafe_allow_html=True)
         bb1, bb2, bb3, bb4 = st.columns([1,1,2,2])
@@ -197,7 +202,7 @@ def product_block(name: str):
             if qty <= 0:
                 st.warning("Введите количество (хотя бы 0.5) перед сохранением.")
             else:
-                ts_dt, ts_str = now()
+                _, ts_str = now()
                 st.session_state.temp_facts.append({
                     "timestamp": ts_str,
                     "product": name,
@@ -205,11 +210,9 @@ def product_block(name: str):
                     "qty": qty,
                 })
                 st.success(f"Сохранено: {qty:.1f} шт. — {name} ({size})")
-                # Сбросить счётчик, чтобы дальше считать новую точку на складе
                 st.session_state.counters[key]["fact"] = 0.0
 
         if a2.button("↩️ Отменить факт", key=f"{key}_fact_undo", disabled=st.session_state.finalized_facts):
-            # удаляем последнюю запись по ЭТОМУ товару (независимо от size)
             for i in range(len(st.session_state.temp_facts)-1, -1, -1):
                 if st.session_state.temp_facts[i]["product"] == name:
                     removed = st.session_state.temp_facts.pop(i)
@@ -218,7 +221,7 @@ def product_block(name: str):
             else:
                 st.info("Для этого товара нет временных записей.")
 
-    # ===== ТРЕБУЕТСЯ ЗАКУПИТЬ =====
+    # ===== ЗАКАЗ =====
     with c2:
         st.markdown("**Требуется закупить**  <span class='g-chip'>±0.5</span>", unsafe_allow_html=True)
         cc1, cc2, cc3, cc4 = st.columns([1,1,2,2])
@@ -236,7 +239,7 @@ def product_block(name: str):
             if qty <= 0:
                 st.warning("Введите количество (хотя бы 0.5) перед подтверждением заказа.")
             else:
-                ts_dt, ts_str = now()
+                _, ts_str = now()
                 st.session_state.temp_orders.append({
                     "timestamp": ts_str,
                     "product": name,
@@ -256,7 +259,6 @@ def product_block(name: str):
                 st.info("Для этого товара нет временных записей по заказу.")
 
     st.markdown("</div>", unsafe_allow_html=True)  # g-card end
-
 
 # ====== РЕНДЕР ВСЕГО СПИСКА ======
 for prod in PRODUCTS:
