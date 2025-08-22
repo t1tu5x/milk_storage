@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 # 🏨 Golan Hotel — МОЛОЧНЫЙ СКЛАД (офлайн-версия без Google Sheets)
 
-# ❗ Этот код уже ОПТИМИЗИРОВАН и готов к запуску через Streamlit без сохранения в Google
-# Всё сохраняется в сессии, а таблицы можно скачать вручную в CSV/TXT — по кнопкам
-# Дизайн полностью сохранён, структура и порядок продуктов тоже
-
-# Запуск в терминале: streamlit run sklad_milk.py
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -90,7 +84,7 @@ for prod in PRODUCTS:
                 st.session_state[f"fact_{prod}"] = max(0.0, st.session_state[f"fact_{prod}"] - 0.5)
             if st.button(f"➕ 0.5", key=f"fact_plus_{prod}"):
                 st.session_state[f"fact_{prod}"] += 0.5
-            st.text_input("Факт:", value=st.session_state[f"fact_{prod}"] , key=f"fact_display_{prod}", disabled=True)
+            st.markdown(f"**Текущее значение:** `{st.session_state[f'fact_{prod}']}`")
             if st.button(f"💾 Сохранить факт", key=f"fact_save_{prod}"):
                 st.session_state.final_facts.append({"product": prod, "qty": st.session_state[f"fact_{prod}"]})
         with col2:
@@ -101,7 +95,7 @@ for prod in PRODUCTS:
                 st.session_state[f"order_{prod}"] = max(0.0, st.session_state[f"order_{prod}"] - 0.5)
             if st.button(f"➕ 0.5", key=f"order_plus_{prod}"):
                 st.session_state[f"order_{prod}"] += 0.5
-            st.text_input("Заказ:", value=st.session_state[f"order_{prod}"] , key=f"order_display_{prod}", disabled=True)
+            st.markdown(f"**Текущее значение:** `{st.session_state[f'order_{prod}']}`")
             if st.button(f"✅ Подтвердить заказ", key=f"order_save_{prod}"):
                 st.session_state.final_orders.append({"product": prod, "qty": st.session_state[f"order_{prod}"]})
 
