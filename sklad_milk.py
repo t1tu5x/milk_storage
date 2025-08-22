@@ -13,88 +13,72 @@ TZ = ZoneInfo("Asia/Jerusalem")
 today_str = datetime.now(TZ).strftime("%d.%m.%Y")
 
 # ======= CSS: ТЁМНАЯ ТЕМА И КНОПКИ =======
+
 st.markdown("""
 <style>
-/* 🔲 Тёмный фон, белый текст */
+/* 🔲 Чёрный фон всей страницы */
 html, body, [data-testid="stAppViewContainer"] {
-  background:#000 !important; color:#fff !important;
+  background: #000 !important;
+  color: #fff !important;
 }
 
-/* 📱 Крупный шрифт по умолчанию */
-html, body, [class*="css"] {
-  font-size: 20px !important;
-}
-.block-container {
-  padding-top: 1.4rem; padding-bottom: 3rem;
-}
-
-/* 🧾 Заголовки */
-h1, h2, h3 { letter-spacing: .3px; color:#fff; }
-.st-expanderHeader { font-size: 22px !important; }
-
-/* 🔘 Кнопки — удобные и широкие */
-button, .stButton>button {
-  font-size: 20px !important;
-  padding: .75rem 1.1rem !important;
-  border-radius: 16px !important;
-  width: 100% !important;
+/* 📝 Белый фон у всех блоков, чёрный текст */
+.stTextInput input, .stNumberInput input,
+.stDataFrame, .stTextInput, .stNumberInput,
+[data-testid="stForm"] {
+  background: #fff !important;
+  color: #000 !important;
+  border: 1px solid #666 !important;
 }
 
-/* ✍️ Инпуты: делаем читаемыми */
-.stTextInput input, .stNumberInput input {
-  background:#111 !important;
-  color:#fff !important;
-  border:1px solid #666 !important;
-}
-.stTextInput input:disabled, .stNumberInput input:disabled {
-  color:#fff !important;
-  background:#111 !important;
-  border-color:#777 !important;
+/* ✅ Активные инпуты: белый фон, чёрный текст */
+input:disabled, input:enabled {
+  color: #000 !important;
+  background: #fff !important;
+  border-color: #999 !important;
   opacity: 1 !important;
 }
 
-/* 📊 Таблицы (DataFrame) — светлые строки на тёмном фоне */
-[data-testid="stDataFrame"] * {
-  color:#fff !important;
-}
-[data-testid="stDataFrame"] .st-emotion-cache-1y4p8pa {
-  background:#0b0b0b !important;
-}
-[data-testid="stDataFrame"] thead th, [data-testid="stDataFrame"] tbody td {
-  border-color:#333 !important;
-}
-
-/* 🔢 Красивая плашка количества */
-.qty {
-  font-size: 28px; font-weight: 900;
-  padding: .25rem .8rem; border-radius: 14px;
-  background: #111; color:#fff; display:inline-block;
-  min-width: 90px; text-align:center; border:1px solid #555;
+/* 📦 Кнопки сохранить / подтвердить */
+button, .stButton > button {
+  background: #fff !important;
+  color: #000 !important;
+  border: 1px solid #999 !important;
+  font-size: 20px !important;
+  border-radius: 14px !important;
+  width: 100% !important;
+  padding: 0.6rem 1.2rem !important;
 }
 
-/* 🖥 Кнопка "на весь экран" */
-.fullscreen-btn {
-  position: fixed; top: 18px; right: 18px;
-  background: #333; color: #fff; padding: 10px 14px;
-  border-radius: 12px; z-index: 1000; cursor: pointer;
-  border:1px solid #555;
+/* 🍽️ Заголовки разворачивающихся блоков */
+.st-expanderHeader {
+  background-color: #fff !important;
+  color: #000 !important;
+  font-size: 22px !important;
+  font-weight: bold;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 6px;
 }
 
-/* 📱 Ещё крупнее на телефоне */
+/* 🔘 Крупные кнопки + и - */
+.stNumberInput button {
+  background: #fff !important;
+  color: #000 !important;
+  font-size: 26px !important;
+  font-weight: bold;
+  border-radius: 10px !important;
+  border: 1px solid #999 !important;
+}
+
+/* 📱 На телефонах ещё крупнее */
 @media (max-width: 520px) {
   html, body, [class*="css"] {
     font-size: 22px !important;
   }
-  .st-expanderHeader {
-    font-size: 24px !important;
-  }
   button, .stButton>button {
-    font-size: 22px !important;
-    padding: .9rem 1.2rem !important;
-  }
-  .qty {
-    font-size: 32px;
-    min-width: 110px;
+    font-size: 24px !important;
+    padding: 1rem 1.4rem !important;
   }
 }
 </style>
