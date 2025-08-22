@@ -5,40 +5,52 @@ import streamlit as st
 # СТИЛЬ
 
 st.markdown("""
-    <style>
-    html, body, [class*="css"] {
-        background-color: black !important;
-        color: white !important;
-    }
-    h1, h2, h3, h4, h5, h6, p, span, div, label {
-        color: white !important;
-        font-size: 24px !important;
-    }
-    .stTextInput input, .stNumberInput input {
-        background-color: white !important;
-        color: black !important;
-        font-size: 22px !important;
-    }
-    .stButton>button, .stDownloadButton>button {
-        background-color: white !important;
-        color: black !important;
-        font-size: 20px !important;
-        padding: 10px 20px !important;
-        border-radius: 8px !important;
-    }
-    .stButton>button:hover, .stDownloadButton>button:hover {
-        background-color: #e0e0e0 !important;
-    }
-    .st-expander {
-        background-color: #111 !important;
-        border: 1px solid white !important;
-        border-radius: 10px !important;
-    }
-    .st-expander summary {
-        color: white !important;
-        font-size: 22px !important;
-    }
-    </style>
+<style>
+/* Чёрный фон страницы */
+html, body, [class*="css"] {
+    background-color: black !important;
+}
+
+/* Белый текст по умолчанию */
+h1, h2, h3, h4, h5, h6, p, span, div, label {
+    color: white !important;
+    font-size: 22px !important;
+}
+
+/* Текстовые и числовые поля — белый фон, чёрный текст */
+input[type="text"], input[type="number"] {
+    background-color: white !important;
+    color: black !important;
+    font-size: 22px !important;
+}
+
+/* Кнопки — белый фон, чёрный текст */
+button[kind="primary"], .stButton>button, .stDownloadButton>button {
+    background-color: white !important;
+    color: black !important;
+    font-size: 20px !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    border: none !important;
+}
+
+/* Hover эффект на кнопках */
+button[kind="primary"]:hover, .stButton>button:hover, .stDownloadButton>button:hover {
+    background-color: #e0e0e0 !important;
+    color: black !important;
+}
+
+/* Expander блоки — чёрный фон, белый текст */
+.st-expander {
+    background-color: #111 !important;
+    border: 1px solid white !important;
+    border-radius: 10px !important;
+}
+.st-expander summary {
+    color: white !important;
+    font-size: 22px !important;
+}
+</style>
 """, unsafe_allow_html=True)
 
 
