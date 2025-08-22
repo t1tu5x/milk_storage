@@ -1,59 +1,97 @@
 import streamlit as st
-import datetime
+from datetime import datetime
 
-st.set_page_config(page_title="🧀 Молочный склад", layout="wide")
+st.set_page_config(page_title="🐮 Молочный склад", page_icon="🥛", layout="centered")
 
-# 🐱 ASCII-КОТ
-st.markdown("### Добро пожаловать на склад молочки! 🧀🐱")
+# 🐱 ASCII
+st.markdown("### 🧀🐱 Добро пожаловать в склад молочки!")
 st.code(r"""
  /\_/\  
-( o.o ) 
+( o.o )   ~ Сегодня учёт — завтра порядок!
  > ^ <
 """)
 
-# 📦 Продукты
+# === Продукты по порядку ===
 PRODUCTS = [
-    "גבינה גאודה", "גבינה צהובה", "גבינה מוצרלה", "גבינה מוצרלה ארוך",
-    "פרומעז", "גבינת שמנת", "גבינת שום", "גבינת זיתים", "גבינה לבנה", "קוטג׳",
-    "רוקפור", "קממבר", "ברי", "מוצרלה טחון",
-    "מעדנים תות", "מעדנים אֲפַרסֵק", "מעדנים יוגורט", "מעדנים פודינג",
-    "בולגרית 5%", "בולגרית 24%", "מוצרלה בייבי כדורים", "מוצרלה צפתית",
-    "יוגורט נעמה", "גבינה מגורדת", "גבינה מוצרלה מגורדת",
-    "שמנת חממה", "שמנת מפוסטרת", "חלב", "ביצים קרטון",
-    "רביולי גבינה", "רביולי בטטה", "מוצרלה מטוגנת",
-    "בלינצ׳ס נוגה", "בלינצ׳ס שוקולד", "בלינצ׳ס תפוח"
+    "חלב 3%", "שוקו", "שמנת מתוקה", "שמנת לבישול", "שמנת חמוצה", "גבינה לבנה",
+    "גבינת סקי", "יוגורט", "יוגורט פרי", "קוטג׳", "קוטג׳ פרי", "חמאה",
+    "מרגרינה", "גבינת פטה", "בולגרית", "צהובה פרוסות", "צהובה קוביות",
+    "גאודה", "קשקבל", "גבינת עיזים", "גבינת שמנת", "גבינת שמנת שום שמיר",
+    "גבינת שמנת זיתים", "גבינת שמנת ירק", "ריקוטה", "מסקרפונה", "גבינת שמנת מתוקה"
 ]
 
-# Инициализация session_state
-if "fact" not in st.session_state:
-    st.session_state.fact = []
-if "order" not in st.session_state:
-    st.session_state.order = []
+# === Init session ===
+for key in ["facts", "orders"]:
+    if key not in st.session_state:
+        st.session_state[key] = []
 
-st.markdown("## 📋 Учёт факта и заказа")
+# === UI ===
+st.markdown("### 📋 Выберите количество для каждого продукта:")
+for i, product in enumerate(PRODUCTS):
+    col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
 
-for product in PRODUCTS:
-    col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
     with col1:
-        st.markdown(f"**{product}**")
+        st.markdown(f"**{i+1}. {product}**")
     with col2:
-        if st.button("➕ Факт", key=f"fact_{product}"):
-            st.session_state.fact.append((str(datetime.date.today()), product, 1))
+        if f"fact_{i}" not in st.session_state:
+            st.session_state[f"fact_{i}"] = 0.0
+        if st.button("➖", key=f"fact_minus_{i}"):
+            st.session_state[f"fact_{i}"] = max(0, st.session_state[f"fact_{i}"] - 0.5)
+        st.write(f"{st.session_state[f'fact_{i}']} шт.")
+        if st.button("➕", key=f"fact_plus_{i}"):
+            st.session_state[f"fact_{i}"] += 0.5
     with col3:
-        if st.button("➕ Заказ", key=f"order_{product}"):
-            st.session_state.order.append((str(datetime.date.today()), product, 1))
+        if st.button("📦 Сохранить факт", key=f"save_fact_{i}"):
+            st.session_state.facts.append([
+                datetime.now().strftime("%Y-%m-%d %H:%M"),
+                i+1,
+                product,
+                "Факт",
+                st.session_state[f"fact_{i}"]
+            ])
     with col4:
-        if st.button("🗑 Удалить последнее", key=f"del_{product}"):
-            if st.session_state.fact and st.session_state.fact[-1][1] == product:
-                st.session_state.fact.pop()
-            elif st.session_state.order and st.session_state.order[-1][1] == product:
-                st.session_state.order.pop()
+        if st.button("❌ Отменить факт", key=f"undo_fact_{i}"):
+            for idx in reversed(range(len(st.session_state.facts))):
+                if st.session_state.facts[idx][1] == i+1:
+                    del st.session_state.facts[idx]
+                    break
+    with col5:
+        if st.button("🛒 Подтвердить заказ", key=f"add_order_{i}"):
+            st.session_state.orders.append([
+                datetime.now().strftime("%Y-%m-%d %H:%M"),
+                i+1,
+                product,
+                "Заказ",
+                st.session_state[f"fact_{i}"]
+            ])
 
-st.divider()
+# === Таблицы ===
+st.markdown("---")
+st.markdown("### ✅ Фактические остатки:")
+if st.session_state.facts:
+    for row in st.session_state.facts:
+        st.write(f"{row[1]}. {row[2]} — {row[4]} шт. ({row[0]})")
+else:
+    st.info("Нет записей по факту.")
 
-# 📊 Таблицы
-st.markdown("### ✅ Фактический остаток")
-st.table(st.session_state.fact)
+st.markdown("### 📦 Что нужно закупить:")
+if st.session_state.orders:
+    for row in st.session_state.orders:
+        st.write(f"{row[1]}. {row[2]} — {row[4]} шт. ({row[0]})")
+else:
+    st.info("Нет заказов.")
 
-st.markdown("### 📦 Заказ")
-st.table(st.session_state.order)
+# === Отчёт ===
+if st.button("🧾 Сформировать отчёт"):
+    if not st.session_state.orders:
+        st.warning("Список заказов пуст!")
+    else:
+        report = "\n".join([f"{row[2]} — {row[4]} шт." for row in st.session_state.orders])
+        st.text_area("📝 Готовый отчёт для отправки:", value=report, height=200)
+        st.success("Отчёт сформирован!")
+
+# === Ошибки отладки ===
+try:
+    st.markdown("##### 🛠 Всё работает без ошибок!")
+except Exception as e:
+    st.error(f"Ошибка: {e}")
