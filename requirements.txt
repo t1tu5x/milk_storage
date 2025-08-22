@@ -1,13 +1,14 @@
-streamlit
-pandas
-gspread
-oauth2client
-google-api-python-client
-google-auth
-google-auth-httplib2
-google-auth-oauthlib
-pandas
-google-api-python-client
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
+# --- Основное для Streamlit приложения ---
+streamlit==1.35.0
+pandas==2.2.2
+
+# --- Работа с Google Sheets и Drive ---
+gspread==6.1.0
+oauth2client==4.1.3
+google-api-python-client==2.127.0
+google-auth==2.29.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# --- Работа с CSV, файлами, логами ---
+numpy==1.26.4
