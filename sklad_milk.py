@@ -5,13 +5,49 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+st.markdown("""
+    <style>
+    html, body, [class*="css"] {
+        background-color: black !important;
+        color: white !important;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, div, label {
+        color: white !important;
+    }
+    .stButton>button, .stDownloadButton>button, .stTextInput>div>input, .stNumberInput>div>input {
+        background-color: white !important;
+        color: black !important;
+        font-size: 24px !important;
+    }
+    .stButton>button:hover, .stDownloadButton>button:hover {
+        background-color: #ddd !important;
+    }
+    .stTextInput>div>input::placeholder, .stNumberInput>div>input::placeholder {
+        color: gray !important;
+    }
+    .st-expander {
+        background-color: #111 !important;
+        border: 1px solid white !important;
+    }
+    .st-expander>summary {
+        color: white !important;
+        font-size: 20px !important;
+    }
+    .stSelectbox>div>div>div {
+        background-color: white !important;
+        color: black !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # ======= КОТИК ФИНАЛ =======
 st.markdown("""
 <hr>
 <div style="color:white;font-size:20px">
 /\\_/\\  <br>
-( •_•)  Выбери свой сырок бро!<br>
-/>🍶<\
+( •_•)  Выбери свой сырок и молочкобро!<br>
+/>🧀<🍶🍶🍶🍶
 </div>
 """, unsafe_allow_html=True)
 
@@ -19,39 +55,6 @@ TZ = ZoneInfo("Asia/Jerusalem")
 TODAY = datetime.now(TZ).strftime("%d.%m.%Y")
 st.set_page_config(page_title="🥛 Молочный склад — 🌿Golan Hotel🌿", layout="wide")
 
-# ======= UI СТИЛЬ =======
-st.markdown("""
-<style>
-html, body, [class*="css"]  { font-size: 20px !important; }
-h1, h2, h3 { letter-spacing: .3px; color: white; }
-.block-container { padding-top: 1.2rem; padding-bottom: 3rem; }
-button, .stButton>button {
-  font-size: 18px !important; padding: .55rem .9rem !important;
-  border-radius: 14px !important;
-  background: white !important; color: black !important;
-}
-.g-badge, .g-chip, .g-card { color: white; }
-.qty {
-  font-size: 24px; font-weight: 800; padding: .1rem .6rem; border-radius: 12px;
-  background: white; color:black; display:inline-block; min-width:72px; text-align:center;
-}
-input[type="text"] {
-  background-color: white !important;
-  color: black !important;
-  font-weight: bold;
-  font-size: 20px;
-}
-.stApp {
-  background-color: black;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ======= СТЕЙТ =======
-if "final_facts" not in st.session_state:
-    st.session_state.final_facts = []
-if "final_orders" not in st.session_state:
-    st.session_state.final_orders = []
 
 # ======= СПИСОК ПРОДУКТОВ =======
 PRODUCTS = [
