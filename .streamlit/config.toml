@@ -1,0 +1,21 @@
+[server]
+headless = true
+runOnSave = true
+enableCORS = false
+enableXsrfProtection = false
+
+[theme]
+base = "light"
+primaryColor = "#0e7490"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f4f8"
+textColor = "#0f172a"
+font = "sans serif"
+
+[client]
+showSidebarNavigation = false
+toolbarMode = "minimal"
+timezone = "Asia/Jerusalem"
+
+[browser]
+gatherUsageStats = false
