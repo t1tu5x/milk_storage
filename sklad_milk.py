@@ -6,6 +6,67 @@ import streamlit as st
 
 st.markdown("""
 <style>
+/* БАЗА: тёмный фон + белый текст */
+html, body, [data-testid="stAppViewContainer"] {
+  background:#000 !important; color:#fff !important;
+}
+
+/* Базовый размер шрифта (крупнее) */
+html, body, [class*="css"] { font-size: 20px !important; }
+.block-container { padding-top: 1.4rem; padding-bottom: 3rem; }
+
+/* Заголовки и экспандеры */
+h1, h2, h3 { letter-spacing: .3px; color:#fff; }
+.st-expanderHeader { font-size: 22px !important; }
+
+/* Кнопки — крупные и удобные */
+button, .stButton>button {
+  font-size: 20px !important;
+  padding: .75rem 1.1rem !important;
+  border-radius: 16px !important;
+  width: 100% !important;
+}
+
+/* Инпуты: делаем читаемыми в disabled-состоянии */
+.stTextInput input, .stNumberInput input {
+  background:#111 !important; color:#fff !important; border:1px solid #666 !important;
+}
+.stTextInput input:disabled, .stNumberInput input:disabled {
+  color:#fff !important; opacity:1 !important; background:#111 !important; border-color:#777 !important;
+}
+
+/* Таблицы (DataFrame) – белые шрифты */
+[data-testid="stDataFrame"] * {
+  color:#fff !important;
+}
+[data-testid="stDataFrame"] .st-emotion-cache-1y4p8pa { /* ячейки */
+  background:#0b0b0b !important;
+}
+[data-testid="stDataFrame"] thead th, [data-testid="stDataFrame"] tbody td {
+  border-color:#333 !important;
+}
+
+/* Плашка текущего количества */
+.qty {
+  font-size: 28px; font-weight: 900;
+  padding: .25rem .8rem; border-radius: 14px;
+  background: #111; color:#fff; display:inline-block;
+  min-width: 90px; text-align:center; border:1px solid #555;
+}
+
+/* Мобильная адаптация: всё ЕЩЁ КРУПНЕЕ */
+@media (max-width: 520px) {
+  html, body, [class*="css"] { font-size: 22px !important; }
+  .st-expanderHeader { font-size: 24px !important; }
+  button, .stButton>button { font-size: 22px !important; padding: .9rem 1.2rem !important; }
+  .qty { font-size: 32px; min-width: 110px; }
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+<style>
 /* Чёрный фон страницы */
 html, body, [class*="css"] {
     background-color: black !important;
