@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-# ВСТАВЛЯЕМ ЭТОТ БЛОК СРАЗУ ПОСЛЕ "import streamlit as st"
+# СТИЛЬ
 
 st.markdown("""
     <style>
@@ -12,44 +12,35 @@ st.markdown("""
     }
     h1, h2, h3, h4, h5, h6, p, span, div, label {
         color: white !important;
+        font-size: 24px !important;
+    }
+    .stTextInput input, .stNumberInput input {
+        background-color: white !important;
+        color: black !important;
         font-size: 22px !important;
     }
     .stButton>button, .stDownloadButton>button {
         background-color: white !important;
         color: black !important;
-        font-size: 22px !important;
-        padding: 12px 24px !important;
-        border-radius: 10px !important;
+        font-size: 20px !important;
+        padding: 10px 20px !important;
+        border-radius: 8px !important;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
-        background-color: #ddd !important;
-    }
-    .stTextInput>div>input,
-    .stNumberInput>div>input {
-        background-color: white !important;
-        color: black !important;
-        font-size: 22px !important;
-    }
-    .stNumberInput>label, .stTextInput>label {
-        font-size: 20px !important;
-        color: white !important;
+        background-color: #e0e0e0 !important;
     }
     .st-expander {
         background-color: #111 !important;
         border: 1px solid white !important;
-        border-radius: 10px;
+        border-radius: 10px !important;
     }
-    .st-expander>summary {
+    .st-expander summary {
         color: white !important;
-        font-size: 24px !important;
-    }
-    .stSelectbox>div>div>div {
-        background-color: white !important;
-        color: black !important;
         font-size: 22px !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 import pandas as pd
 from datetime import datetime
